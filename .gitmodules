@@ -1,3 +1,6 @@
 [submodule "rewarding-sale-app-docs"]
 	path = rewarding-sale-app-docs
 	url = https://github.com/NiharikaBalaga/rewarding-sale-app-docs.git
+[submodule "rewarding-sale-app-auth-service"]
+	path = rewarding-sale-app-auth-service
+	url = https://github.com/NiharikaBalaga/rewarding-sale-app-auth-service.git
