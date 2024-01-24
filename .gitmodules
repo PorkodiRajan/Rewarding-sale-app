@@ -10,3 +10,6 @@
 [submodule "rewarding-sale-app-search-service"]
 	path = rewarding-sale-app-search-service
 	url = https://github.com/NiharikaBalaga/rewarding-sale-app-search-service.git
+[submodule "rewarding-sale-app-rewards-service"]
+	path = rewarding-sale-app-rewards-service
+	url = https://github.com/NiharikaBalaga/rewarding-sale-app-rewards-service.git
