@@ -19,3 +19,6 @@
 [submodule "rewarding-sale-app-decision-service"]
 	path = rewarding-sale-app-decision-service
 	url = https://github.com/NiharikaBalaga/rewarding-sale-app-decision-service.git
+[submodule "rewarding-sale-app-report-service"]
+	path = rewarding-sale-app-report-service
+	url = https://github.com/NiharikaBalaga/rewarding-sale-app-report-service.git
