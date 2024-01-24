@@ -4,3 +4,6 @@
 [submodule "rewarding-sale-app-auth-service"]
 	path = rewarding-sale-app-auth-service
 	url = https://github.com/NiharikaBalaga/rewarding-sale-app-auth-service.git
+[submodule "rewarding-sale-app-post-service"]
+	path = rewarding-sale-app-post-service
+	url = https://github.com/NiharikaBalaga/rewarding-sale-app-post-service.git
