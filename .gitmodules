@@ -25,3 +25,6 @@
 [submodule "rewarding-sale-app-location-service"]
 	path = rewarding-sale-app-location-service
 	url = https://github.com/NiharikaBalaga/rewarding-sale-app-location-service.git
+[submodule "rewarding-sale-app-admin-service"]
+	path = rewarding-sale-app-admin-service
+	url = https://github.com/NiharikaBalaga/rewarding-sale-app-admin-service.git
