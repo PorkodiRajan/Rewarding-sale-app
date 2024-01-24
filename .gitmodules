@@ -28,3 +28,6 @@
 [submodule "rewarding-sale-app-admin-service"]
 	path = rewarding-sale-app-admin-service
 	url = https://github.com/NiharikaBalaga/rewarding-sale-app-admin-service.git
+[submodule "rewarding-sale-app-admin-react"]
+	path = rewarding-sale-app-admin-react
+	url = https://github.com/NiharikaBalaga/rewarding-sale-app-admin-react.git
