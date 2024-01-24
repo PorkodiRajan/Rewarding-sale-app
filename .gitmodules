@@ -34,3 +34,6 @@
 [submodule "rewarding-sale-app-flutter-app"]
 	path = rewarding-sale-app-flutter-app
 	url = https://github.com/NiharikaBalaga/rewarding-sale-app-flutter-app.git
+[submodule "rewarding-sale-app-comment-service"]
+	path = rewarding-sale-app-comment-service
+	url = https://github.com/NiharikaBalaga/rewarding-sale-app-comment-service.git
