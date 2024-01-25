@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  mongodb_auth_service:
+    container_name: mongodb_auth_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=authService
+      - MONGO_INITDB_ROOT_PASSWORD=authService
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-authService-data:/data/db
+
+  mongo-express-auth:
+    container_name: mongo-express-auth
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://authService:authService@mongodb_auth_service:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  #mongo-express web username
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  #mongo-express web password
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=authService
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=authService
+    depends_on:
+      - mongodb_auth_service
+    ports:
+      - "8081:8081"
+
+  auth-service:
+    container_name: auth-service
+    build: ./rewarding-sale-app-auth-service
+    depends_on:
+      - mongodb_auth_service
+    ports:
+      - "3000:3000"
+
+volumes:
+  mongodb-authService-data:
+    driver: local
