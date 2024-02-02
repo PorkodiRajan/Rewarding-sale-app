@@ -1,6 +1,7 @@
 version: '3'
 
 services:
+### Auth Service
   mongodb_auth_service:
     container_name: mongodb_auth_service
     image: mongo:latest
@@ -9,7 +10,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=authService
       - MONGO_INITDB_ROOT_PASSWORD=authService
     ports:
-      - "27017:27017"
+      - "27017"
     volumes:
       - mongodb-authService-data:/data/db
 
@@ -35,6 +36,44 @@ services:
     ports:
       - "3000:3000"
 
+### Post Service
+  mongodb_post_service:
+    container_name: mongodb_post_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=postService
+      - MONGO_INITDB_ROOT_PASSWORD=postService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-postService-data:/data/db
+
+  mongo-express-post:
+    container_name: mongo-express-post
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://postService:postService@mongodb_post_service:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  #mongo-express web username
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  #mongo-express web password
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=postService
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=postService
+    depends_on:
+      - mongodb_post_service
+    ports:
+      - "8082:8081"
+
+  post-service:
+    container_name: post-service
+    build: ./rewarding-sale-app-post-service
+    depends_on:
+      - mongodb_post_service
+    ports:
+      - "3001:3000"
+
 volumes:
   mongodb-authService-data:
+    driver: local
+
+  mongodb-postService-data:
     driver: local
