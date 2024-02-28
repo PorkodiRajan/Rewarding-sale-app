@@ -107,6 +107,42 @@ services:
     ports:
       - "3002:3000"
 
+
+### Search Service
+  mongodb_search_service:
+    container_name: mongodb_search_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=searchService
+      - MONGO_INITDB_ROOT_PASSWORD=searchService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-searchService-data:/data/db
+
+  mongo-express-search:
+    container_name: mongo-express-search
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://searchService:searchService@mongodb_search_service:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  #mongo-express web username
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  #mongo-express web password
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=searchService
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=searchService
+    depends_on:
+      - mongodb_search_service
+    ports:
+      - "8084:8081"
+
+  search-service:
+    container_name: search-service
+    build: ./rewarding-sale-app-search-service
+    depends_on:
+      - mongodb_search_service
+    ports:
+      - "3003:3000"
+
 volumes:
   mongodb-authService-data:
     driver: local
@@ -115,4 +151,7 @@ volumes:
     driver: local
 
   mongodb-adminService-data:
+    driver: local
+
+  mongodb-searchService-data:
     driver: local
