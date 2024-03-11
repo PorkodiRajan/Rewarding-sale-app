@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-### Auth Service
+  ### Auth Service
   mongodb_auth_service:
     container_name: mongodb_auth_service
     image: mongo:latest
@@ -36,7 +36,7 @@ services:
     ports:
       - "3000:3000"
 
-### Post Service
+  ### Post Service
   mongodb_post_service:
     container_name: mongodb_post_service
     image: mongo:latest
@@ -108,7 +108,7 @@ services:
       - "3002:3000"
 
 
-### Search Service
+  ### Search Service
   mongodb_search_service:
     container_name: mongodb_search_service
     image: mongo:latest
@@ -143,6 +143,41 @@ services:
     ports:
       - "3003:3000"
 
+  ##Comment Service
+  mongodb_comment_service:
+    container_name: mongodb_comment_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=commentService
+      - MONGO_INITDB_ROOT_PASSWORD=commentService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-commentService-data:/data/db
+
+  mongo-express-comment:
+    container_name: mongo-express-comment
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://commentService:commentService@mongodb_comment_service:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  #mongo-express web username
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  #mongo-express web password
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=commentService
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=commentService
+    depends_on:
+      - mongodb_comment_service
+    ports:
+      - "8085:8081"
+
+  comment-service:
+    container_name: comment-service
+    build: ./rewarding-sale-app-comment-service
+    depends_on:
+      - mongodb_comment_service
+    ports:
+      - "3004:3000"
+
 volumes:
   mongodb-authService-data:
     driver: local
@@ -154,4 +189,7 @@ volumes:
     driver: local
 
   mongodb-searchService-data:
+    driver: local
+
+  mongodb-commentService-data:
     driver: local
