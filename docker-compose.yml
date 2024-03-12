@@ -178,6 +178,42 @@ services:
     ports:
       - "3004:3000"
 
+  ##Vote Service
+
+  mongodb_vote_service:
+    container_name: mongodb_vote_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=voteService
+      - MONGO_INITDB_ROOT_PASSWORD=voteService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-voteService-data:/data/db
+
+  mongo-express-vote:
+    container_name: mongo-express-vote
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://voteService:voteService@mongodb_vote_service:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  #mongo-express web username
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  #mongo-express web password
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=voteService
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=voteService
+    depends_on:
+      - mongodb_vote_service
+    ports:
+      - "8086:8081"
+
+  vote-service:
+    container_name: vote-service
+    build: ./rewarding-sale-app-vote-service
+    depends_on:
+      - mongodb_vote_service
+    ports:
+      - "3005:3000"
+
 volumes:
   mongodb-authService-data:
     driver: local
@@ -192,4 +228,7 @@ volumes:
     driver: local
 
   mongodb-commentService-data:
+    driver: local
+
+  mongodb-voteService-data:
     driver: local
