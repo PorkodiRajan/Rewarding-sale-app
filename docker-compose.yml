@@ -214,6 +214,76 @@ services:
     ports:
       - "3005:3000"
 
+##Rewards
+  mongodb_reward_service:
+    container_name: mongodb_reward_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=rewardService
+      - MONGO_INITDB_ROOT_PASSWORD=rewardService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-rewardService-data:/data/db
+
+  mongo-express-reward:
+    container_name: mongo-express-reward
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://rewardService:rewardService@mongodb_reward_service:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  #mongo-express web username
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  #mongo-express web password
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=rewardService
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=rewardService
+    depends_on:
+      - mongodb_reward_service
+    ports:
+      - "8087:8081"
+
+  reward-service:
+    container_name: reward-service
+    build: ./rewarding-sale-app-rewards-service
+    depends_on:
+      - mongodb_reward_service
+    ports:
+      - "3006:3000"
+
+##Report
+  mongodb_report_service:
+    container_name: mongodb_report_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=reportService
+      - MONGO_INITDB_ROOT_PASSWORD=reportService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-reportService-data:/data/db
+
+  mongo-express-report:
+    container_name: mongo-express-report
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://reportService:reportService@mongodb_report_service:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  #mongo-express web username
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  #mongo-express web password
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=reportService
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=reportService
+    depends_on:
+      - mongodb_report_service
+    ports:
+      - "8088:8081"
+
+  report-service:
+    container_name: report-service
+    build: ./rewarding-sale-app-report-service
+    depends_on:
+      - mongodb_report_service
+    ports:
+      - "3007:3000"
+
 volumes:
   mongodb-authService-data:
     driver: local
@@ -231,4 +301,10 @@ volumes:
     driver: local
 
   mongodb-voteService-data:
+    driver: local
+
+  mongodb-rewardService-data:
+    driver: local
+
+  mongodb-reportService-data:
     driver: local
