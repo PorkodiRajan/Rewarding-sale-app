@@ -76,7 +76,7 @@ Resources:
               ContainerName: Adminservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_admin_service:latest@sha256:506c7e2339e01a0f765e0d63c024ed92377e32177b19050576bcaa0658aa1e45
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -101,7 +101,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -191,7 +191,7 @@ Resources:
               ContainerName: Authservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_auth_service:latest@sha256:3f08a44d2301a9052b8df4591918c2dbb1a6fef0f1db6d8dcf55113ba431d8bb
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -216,7 +216,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -319,7 +319,7 @@ Resources:
               ContainerName: Commentservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_comment_service:latest@sha256:dd10a8441f91f56a451fed2c47383e11c4d8cf34d22a6304961889ff122a0721
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -344,7 +344,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -434,7 +434,7 @@ Resources:
               ContainerName: Decisionservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_decision_service:latest@sha256:59ecd965d0de1f2917751e91322de220d38643ac7e566a99b410b96cd072b197
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -459,7 +459,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -483,16 +483,6 @@ Resources:
       IpProtocol: TCP
       ToPort: 80
     Type: AWS::EC2::SecurityGroupIngress
-  Default27017Ingress:
-    Properties:
-      CidrIp: 0.0.0.0/0
-      Description: mongodb_decision_service:27017/tcp on default network
-      FromPort: 27017
-      GroupId:
-        Ref: DefaultNetwork
-      IpProtocol: TCP
-      ToPort: 27017
-    Type: AWS::EC2::SecurityGroupIngress
   DefaultNetwork:
     Properties:
       GroupDescription: rewarding-sale-app Security Group for default network
@@ -514,10 +504,9 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
   LoadBalancer:
     Properties:
-      LoadBalancerAttributes:
-        - Key: load_balancing.cross_zone.enabled
-          Value: "true"
       Scheme: internet-facing
+      SecurityGroups:
+        - Ref: DefaultNetwork
       Subnets:
         - subnet-031cd94a528d7bd43
         - subnet-0b81881aff75c57ab
@@ -525,7 +514,7 @@ Resources:
       Tags:
         - Key: com.docker.compose.project
           Value: rewarding-sale-app
-      Type: network
+      Type: application
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
   LogGroup:
     Properties:
@@ -565,7 +554,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbadminserviceService:
     DependsOn:
-      - MongodbadminserviceTCP27017Listener
       - MongodbadminServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbadminServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbadminServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -581,11 +569,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_admin_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbadminserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -625,29 +608,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbadminserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbadminserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbadminserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbadminserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -675,7 +635,7 @@ Resources:
               Value: adminService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -688,10 +648,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-adminService-data
           Name: mongodb_admin_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbadminserviceTaskExecutionRole
@@ -718,7 +674,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -738,7 +694,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -755,7 +711,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbadminServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-0ec6939c0c6bd38ea
             Version: 2012-10-17
@@ -800,7 +756,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbauthserviceService:
     DependsOn:
-      - MongodbauthserviceTCP27017Listener
       - MongodbauthServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbauthServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbauthServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -816,11 +771,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_auth_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbauthserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -860,29 +810,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbauthserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbauthserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbauthserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbauthserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -910,7 +837,7 @@ Resources:
               Value: authService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -923,10 +850,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-authService-data
           Name: mongodb_auth_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbauthserviceTaskExecutionRole
@@ -953,7 +876,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -973,7 +896,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -990,7 +913,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbauthServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-08b2f7aadd4e352a0
             Version: 2012-10-17
@@ -1035,7 +958,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbcommentserviceService:
     DependsOn:
-      - MongodbcommentserviceTCP27017Listener
       - MongodbcommentServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbcommentServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbcommentServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -1051,11 +973,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_comment_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbcommentserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -1095,29 +1012,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbcommentserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbcommentserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbcommentserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbcommentserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -1145,7 +1039,7 @@ Resources:
               Value: commentService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -1158,10 +1052,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-commentService-data
           Name: mongodb_comment_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbcommentserviceTaskExecutionRole
@@ -1188,7 +1078,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -1208,7 +1098,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -1225,7 +1115,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbcommentServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-04a0330456af58dd3
             Version: 2012-10-17
@@ -1270,7 +1160,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbdecisionserviceService:
     DependsOn:
-      - MongodbdecisionserviceTCP27017Listener
       - MongodbdecisionServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbdecisionServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbdecisionServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -1286,11 +1175,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_decision_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbdecisionserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -1330,29 +1214,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbdecisionserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbdecisionserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbdecisionserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbdecisionserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -1380,7 +1241,7 @@ Resources:
               Value: decisionService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -1393,10 +1254,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-decisionService-data
           Name: mongodb_decision_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbdecisionserviceTaskExecutionRole
@@ -1423,7 +1280,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -1443,7 +1300,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -1460,7 +1317,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbdecisionServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-0aab8a23f90e5b5e2
             Version: 2012-10-17
@@ -1505,7 +1362,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbpostserviceService:
     DependsOn:
-      - MongodbpostserviceTCP27017Listener
       - MongodbpostServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbpostServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbpostServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -1521,11 +1377,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_post_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbpostserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -1565,29 +1416,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbpostserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbpostserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbpostserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbpostserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -1615,7 +1443,7 @@ Resources:
               Value: postService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -1628,10 +1456,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-postService-data
           Name: mongodb_post_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbpostserviceTaskExecutionRole
@@ -1658,7 +1482,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -1678,7 +1502,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -1695,7 +1519,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbpostServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-02b5dd2553be780db
             Version: 2012-10-17
@@ -1740,7 +1564,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbreportserviceService:
     DependsOn:
-      - MongodbreportserviceTCP27017Listener
       - MongodbreportServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbreportServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbreportServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -1756,11 +1579,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_report_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbreportserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -1800,29 +1618,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbreportserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbreportserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbreportserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbreportserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -1850,7 +1645,7 @@ Resources:
               Value: reportService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -1863,10 +1658,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-reportService-data
           Name: mongodb_report_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbreportserviceTaskExecutionRole
@@ -1893,7 +1684,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -1913,7 +1704,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -1930,7 +1721,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbreportServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-0b94c87d2bd03caa1
             Version: 2012-10-17
@@ -1975,7 +1766,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbrewardserviceService:
     DependsOn:
-      - MongodbrewardserviceTCP27017Listener
       - MongodbrewardServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbrewardServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbrewardServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -1991,11 +1781,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_reward_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbrewardserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -2035,29 +1820,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbrewardserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbrewardserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbrewardserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbrewardserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -2085,7 +1847,7 @@ Resources:
               Value: rewardService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -2098,10 +1860,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-rewardService-data
           Name: mongodb_reward_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbrewardserviceTaskExecutionRole
@@ -2128,7 +1886,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -2148,7 +1906,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -2165,7 +1923,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbrewardServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-09f4bdf2a579a6caf
             Version: 2012-10-17
@@ -2210,7 +1968,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbsearchserviceService:
     DependsOn:
-      - MongodbsearchserviceTCP27017Listener
       - MongodbsearchServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbsearchServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbsearchServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -2226,11 +1983,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_search_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbsearchserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -2270,29 +2022,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbsearchserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbsearchserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbsearchserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbsearchserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -2320,7 +2049,7 @@ Resources:
               Value: searchService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -2333,10 +2062,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-searchService-data
           Name: mongodb_search_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbsearchserviceTaskExecutionRole
@@ -2363,7 +2088,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -2383,7 +2108,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -2400,7 +2125,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbsearchServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-08495a5f097dd4daf
             Version: 2012-10-17
@@ -2445,7 +2170,6 @@ Resources:
     Type: AWS::EFS::MountTarget
   MongodbvoteserviceService:
     DependsOn:
-      - MongodbvoteserviceTCP27017Listener
       - MongodbvoteServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
       - MongodbvoteServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
       - MongodbvoteServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
@@ -2461,11 +2185,6 @@ Resources:
         Type: ECS
       DesiredCount: 1
       LaunchType: FARGATE
-      LoadBalancers:
-        - ContainerName: mongodb_vote_service
-          ContainerPort: 27017
-          TargetGroupArn:
-            Ref: MongodbvoteserviceTCP27017TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -2505,29 +2224,6 @@ Resources:
       NamespaceId:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
-  MongodbvoteserviceTCP27017Listener:
-    Properties:
-      DefaultActions:
-        - ForwardConfig:
-            TargetGroups:
-              - TargetGroupArn:
-                  Ref: MongodbvoteserviceTCP27017TargetGroup
-          Type: forward
-      LoadBalancerArn:
-        Ref: LoadBalancer
-      Port: 27017
-      Protocol: TCP
-    Type: AWS::ElasticLoadBalancingV2::Listener
-  MongodbvoteserviceTCP27017TargetGroup:
-    Properties:
-      Port: 27017
-      Protocol: TCP
-      Tags:
-        - Key: com.docker.compose.project
-          Value: rewarding-sale-app
-      TargetType: ip
-      VpcId: vpc-0eac5707d03b4e7e0
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
   MongodbvoteserviceTaskDefinition:
     Properties:
       ContainerDefinitions:
@@ -2555,7 +2251,7 @@ Resources:
               Value: voteService
           Essential: true
           Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -2568,10 +2264,6 @@ Resources:
             - ContainerPath: /data/db
               SourceVolume: mongodb-voteService-data
           Name: mongodb_vote_service
-          PortMappings:
-            - ContainerPort: 27017
-              HostPort: 27017
-              Protocol: tcp
       Cpu: "256"
       ExecutionRoleArn:
         Ref: MongodbvoteserviceTaskExecutionRole
@@ -2598,7 +2290,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -2618,7 +2310,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -2635,7 +2327,7 @@ Resources:
                     elasticfilesystem:AccessPointArn:
                       Ref: MongodbvoteServicedataAccessPoint
                 Effect: Allow
-                Principal: {}
+                Principal: { }
                 Resource:
                   - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-09640897fe0856f0b
             Version: 2012-10-17
@@ -2650,14 +2342,14 @@ Resources:
     DependsOn:
       - NginxTCP80Listener
       - AdminserviceService
-      - AuthserviceService
+      - CommentserviceService
       - ReportserviceService
-      - RewardserviceService
-      - VoteserviceService
       - DecisionserviceService
       - PostserviceService
+      - RewardserviceService
+      - AuthserviceService
       - SearchserviceService
-      - CommentserviceService
+      - VoteserviceService
     Properties:
       Cluster:
         Fn::GetAtt:
@@ -2725,12 +2417,12 @@ Resources:
       LoadBalancerArn:
         Ref: LoadBalancer
       Port: 80
-      Protocol: TCP
+      Protocol: HTTP
     Type: AWS::ElasticLoadBalancingV2::Listener
   NginxTCP80TargetGroup:
     Properties:
       Port: 80
-      Protocol: TCP
+      Protocol: HTTP
       Tags:
         - Key: com.docker.compose.project
           Value: rewarding-sale-app
@@ -2759,7 +2451,7 @@ Resources:
               ContainerName: Nginx_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_nginx_reverse_proxy:latest@sha256:5779c070a480e1f6882b7dac1055212b492c466a29b4b908517e54a4518511f0
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -2788,7 +2480,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -2878,7 +2570,7 @@ Resources:
               ContainerName: Postservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_post_service:latest@sha256:cf791d0ddbd2ed3bd024a209c4f23c9accfe7b870c46a233595f05ddc1e99f76
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -2903,7 +2595,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -2993,7 +2685,7 @@ Resources:
               ContainerName: Reportservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_report_service:latest@sha256:0a6947dae8d9fdd278edc7fa98e3774174a8d9cd1fa26b3ccc15a195d331c688
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -3018,7 +2710,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -3108,7 +2800,7 @@ Resources:
               ContainerName: Rewardservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_rewards_service:latest@sha256:09f25bd79405f5dca2247ffb7240cbe4ee9ba1b07ed1b9760fb71935482c6a6f
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -3133,7 +2825,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -3223,7 +2915,7 @@ Resources:
               ContainerName: Searchservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_search_service:latest@sha256:6c634969dd9c1cd5fdae4315f903774d022a828cc8e1d7d4c3d6d24ce88514cb
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -3248,7 +2940,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
@@ -3338,7 +3030,7 @@ Resources:
               ContainerName: Voteservice_ResolvConf_InitContainer
           Essential: true
           Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_vote_service:latest@sha256:3e0396e074efeae585e570118baf076b3ba3978337825bca1e906a5a6f72dbad
-          LinuxParameters: {}
+          LinuxParameters: { }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -3363,7 +3055,7 @@ Resources:
         Statement:
           - Action:
               - sts:AssumeRole
-            Condition: {}
+            Condition: { }
             Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com

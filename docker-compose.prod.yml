@@ -9,8 +9,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=authService
       - MONGO_INITDB_ROOT_PASSWORD=authService
-    ports:
-      - "27017"
     volumes:
       - mongodb-authService-data:/data/db
 
@@ -33,8 +31,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=postService
       - MONGO_INITDB_ROOT_PASSWORD=postService
-    ports:
-      - "27017"
     volumes:
       - mongodb-postService-data:/data/db
 
@@ -59,8 +55,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=adminService
       - MONGO_INITDB_ROOT_PASSWORD=adminService
-    ports:
-      - "27017"
     volumes:
       - mongodb-adminService-data:/data/db
 
@@ -85,8 +79,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=searchService
       - MONGO_INITDB_ROOT_PASSWORD=searchService
-    ports:
-      - "27017"
     volumes:
       - mongodb-searchService-data:/data/db
 
@@ -110,8 +102,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=commentService
       - MONGO_INITDB_ROOT_PASSWORD=commentService
-    ports:
-      - "27017"
     volumes:
       - mongodb-commentService-data:/data/db
 
@@ -136,8 +126,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=voteService
       - MONGO_INITDB_ROOT_PASSWORD=voteService
-    ports:
-      - "27017"
     volumes:
       - mongodb-voteService-data:/data/db
 
@@ -161,8 +149,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=rewardService
       - MONGO_INITDB_ROOT_PASSWORD=rewardService
-    ports:
-      - "27017"
     volumes:
       - mongodb-rewardService-data:/data/db
 
@@ -186,8 +172,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=reportService
       - MONGO_INITDB_ROOT_PASSWORD=reportService
-    ports:
-      - "27017"
     volumes:
       - mongodb-reportService-data:/data/db
 
@@ -211,8 +195,6 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=decisionService
       - MONGO_INITDB_ROOT_PASSWORD=decisionService
-    ports:
-      - "27017"
     volumes:
       - mongodb-decisionService-data:/data/db
 
