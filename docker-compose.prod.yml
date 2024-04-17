@@ -1,0 +1,275 @@
+version: '3'
+
+services:
+  ### Auth Service
+  mongodb_auth_service:
+    container_name: mongodb_auth_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=authService
+      - MONGO_INITDB_ROOT_PASSWORD=authService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-authService-data:/data/db
+
+  auth-service:
+    container_name: auth-service
+    build:
+      context: ./rewarding-sale-app-auth-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_auth_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  ### Post Service
+  mongodb_post_service:
+    container_name: mongodb_post_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=postService
+      - MONGO_INITDB_ROOT_PASSWORD=postService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-postService-data:/data/db
+
+
+  post-service:
+    container_name: post-service
+    build:
+      context: ./rewarding-sale-app-post-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_post_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+
+  ### Admin Service
+  mongodb_admin_service:
+    container_name: mongodb_admin_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=adminService
+      - MONGO_INITDB_ROOT_PASSWORD=adminService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-adminService-data:/data/db
+
+
+  admin-service:
+    container_name: admin-service
+    build:
+      context: ./rewarding-sale-app-admin-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_admin_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+
+  ### Search Service
+  mongodb_search_service:
+    container_name: mongodb_search_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=searchService
+      - MONGO_INITDB_ROOT_PASSWORD=searchService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-searchService-data:/data/db
+
+
+  search-service:
+    container_name: search-service
+    build:
+      context: ./rewarding-sale-app-search-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_search_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  ##Comment Service
+  mongodb_comment_service:
+    container_name: mongodb_comment_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=commentService
+      - MONGO_INITDB_ROOT_PASSWORD=commentService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-commentService-data:/data/db
+
+
+  comment-service:
+    container_name: comment-service
+    build:
+      context: ./rewarding-sale-app-comment-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_comment_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  ##Vote Service
+
+  mongodb_vote_service:
+    container_name: mongodb_vote_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=voteService
+      - MONGO_INITDB_ROOT_PASSWORD=voteService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-voteService-data:/data/db
+
+
+  vote-service:
+    container_name: vote-service
+    build:
+      context: ./rewarding-sale-app-vote-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_vote_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  ##Rewards
+  mongodb_reward_service:
+    container_name: mongodb_reward_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=rewardService
+      - MONGO_INITDB_ROOT_PASSWORD=rewardService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-rewardService-data:/data/db
+
+
+  reward-service:
+    container_name: reward-service
+    build:
+      context: ./rewarding-sale-app-rewards-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_reward_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  ##Report
+  mongodb_report_service:
+    container_name: mongodb_report_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=reportService
+      - MONGO_INITDB_ROOT_PASSWORD=reportService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-reportService-data:/data/db
+
+
+  report-service:
+    container_name: report-service
+    build:
+      context: ./rewarding-sale-app-report-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_report_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  ##Decision Service
+  mongodb_decision_service:
+    container_name: mongodb_decision_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=decisionService
+      - MONGO_INITDB_ROOT_PASSWORD=decisionService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-decisionService-data:/data/db
+
+
+  decision-service:
+    container_name: decision-service
+    build:
+      context: ./rewarding-sale-app-decision-service
+      dockerfile: Dockerfile-prod
+    depends_on:
+      - mongodb_decision_service
+    deploy:
+      mode: replicated
+      replicas: 1
+
+
+  ### Reverse Proxy - Nginx
+  nginx:
+    container_name: nginx
+    build: ./rewarding-sale-app-nginx-reverse-proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - post-service
+      - admin-service
+      - search-service
+      - comment-service
+      - vote-service
+      - reward-service
+      - report-service
+      - decision-service
+
+volumes:
+  mongodb-authService-data:
+    driver: local
+
+  mongodb-postService-data:
+    driver: local
+
+  mongodb-adminService-data:
+    driver: local
+
+  mongodb-searchService-data:
+    driver: local
+
+  mongodb-commentService-data:
+    driver: local
+
+  mongodb-voteService-data:
+    driver: local
+
+  mongodb-rewardService-data:
+    driver: local
+
+  mongodb-reportService-data:
+    driver: local
+
+  mongodb-decisionService-data:
+    driver: local
