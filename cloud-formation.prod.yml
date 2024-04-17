@@ -1,0 +1,3379 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  AdminserviceService:
+    DependsOn:
+      - MongodbadminserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - AdminserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: admin-service
+      TaskDefinition:
+        Ref: AdminserviceTaskDefinition
+    Type: AWS::ECS::Service
+  AdminserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"admin-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: admin-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  AdminserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Adminservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Adminservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_admin_service:latest@sha256:506c7e2339e01a0f765e0d63c024ed92377e32177b19050576bcaa0658aa1e45
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: admin-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: AdminserviceTaskExecutionRole
+      Family: rewarding-sale-app-admin-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  AdminserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: admin-service
+    Type: AWS::IAM::Role
+  AuthserviceService:
+    DependsOn:
+      - MongodbauthserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - AuthserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: auth-service
+      TaskDefinition:
+        Ref: AuthserviceTaskDefinition
+    Type: AWS::ECS::Service
+  AuthserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"auth-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: auth-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  AuthserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Authservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Authservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_auth_service:latest@sha256:3f08a44d2301a9052b8df4591918c2dbb1a6fef0f1db6d8dcf55113ba431d8bb
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: auth-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: AuthserviceTaskExecutionRole
+      Family: rewarding-sale-app-auth-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  AuthserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: auth-service
+    Type: AWS::IAM::Role
+  CloudMap:
+    Properties:
+      Description: Service Map for Docker Compose project rewarding-sale-app
+      Name: rewarding-sale-app.local
+      Vpc: vpc-0eac5707d03b4e7e0
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+  Cluster:
+    Properties:
+      ClusterName: rewarding-sale-app
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+    Type: AWS::ECS::Cluster
+  CommentserviceService:
+    DependsOn:
+      - MongodbcommentserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - CommentserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: comment-service
+      TaskDefinition:
+        Ref: CommentserviceTaskDefinition
+    Type: AWS::ECS::Service
+  CommentserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"comment-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: comment-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  CommentserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Commentservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Commentservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_comment_service:latest@sha256:dd10a8441f91f56a451fed2c47383e11c4d8cf34d22a6304961889ff122a0721
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: comment-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: CommentserviceTaskExecutionRole
+      Family: rewarding-sale-app-comment-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  CommentserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: comment-service
+    Type: AWS::IAM::Role
+  DecisionserviceService:
+    DependsOn:
+      - MongodbdecisionserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - DecisionserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: decision-service
+      TaskDefinition:
+        Ref: DecisionserviceTaskDefinition
+    Type: AWS::ECS::Service
+  DecisionserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"decision-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: decision-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  DecisionserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Decisionservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Decisionservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_decision_service:latest@sha256:59ecd965d0de1f2917751e91322de220d38643ac7e566a99b410b96cd072b197
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: decision-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: DecisionserviceTaskExecutionRole
+      Family: rewarding-sale-app-decision-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  DecisionserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: decision-service
+    Type: AWS::IAM::Role
+  Default80Ingress:
+    Properties:
+      CidrIp: 0.0.0.0/0
+      Description: nginx:80/tcp on default network
+      FromPort: 80
+      GroupId:
+        Ref: DefaultNetwork
+      IpProtocol: TCP
+      ToPort: 80
+    Type: AWS::EC2::SecurityGroupIngress
+  Default27017Ingress:
+    Properties:
+      CidrIp: 0.0.0.0/0
+      Description: mongodb_decision_service:27017/tcp on default network
+      FromPort: 27017
+      GroupId:
+        Ref: DefaultNetwork
+      IpProtocol: TCP
+      ToPort: 27017
+    Type: AWS::EC2::SecurityGroupIngress
+  DefaultNetwork:
+    Properties:
+      GroupDescription: rewarding-sale-app Security Group for default network
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.network
+          Value: rewarding-sale-app_default
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::EC2::SecurityGroup
+  DefaultNetworkIngress:
+    Properties:
+      Description: Allow communication within network default
+      GroupId:
+        Ref: DefaultNetwork
+      IpProtocol: "-1"
+      SourceSecurityGroupId:
+        Ref: DefaultNetwork
+    Type: AWS::EC2::SecurityGroupIngress
+  LoadBalancer:
+    Properties:
+      LoadBalancerAttributes:
+        - Key: load_balancing.cross_zone.enabled
+          Value: "true"
+      Scheme: internet-facing
+      Subnets:
+        - subnet-031cd94a528d7bd43
+        - subnet-0b81881aff75c57ab
+        - subnet-02769e9eaa84da5df
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      Type: network
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  LogGroup:
+    Properties:
+      LogGroupName: /docker-compose/rewarding-sale-app
+    Type: AWS::Logs::LogGroup
+  MongodbadminServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-adminService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-adminService-data
+      FileSystemId: fs-0ec6939c0c6bd38ea
+    Type: AWS::EFS::AccessPoint
+  MongodbadminServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-0ec6939c0c6bd38ea
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbadminServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-0ec6939c0c6bd38ea
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbadminServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-0ec6939c0c6bd38ea
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbadminserviceService:
+    DependsOn:
+      - MongodbadminserviceTCP27017Listener
+      - MongodbadminServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbadminServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbadminServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_admin_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbadminserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbadminserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_admin_service
+      TaskDefinition:
+        Ref: MongodbadminserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbadminserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_admin_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_admin_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbadminserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbadminserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbadminserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbadminserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbadminservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbadminservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: adminService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: adminService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-adminService-data
+          Name: mongodb_admin_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbadminserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_admin_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbadminserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbadminServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-0ec6939c0c6bd38ea
+            TransitEncryption: ENABLED
+          Name: mongodb-adminService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbadminserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_admin_service
+    Type: AWS::IAM::Role
+  MongodbadminserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbadminServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-0ec6939c0c6bd38ea
+            Version: 2012-10-17
+          PolicyName: MongodbadminserviceMongodbadminServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_admin_service
+    Type: AWS::IAM::Role
+  MongodbauthServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-authService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-authService-data
+      FileSystemId: fs-08b2f7aadd4e352a0
+    Type: AWS::EFS::AccessPoint
+  MongodbauthServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-08b2f7aadd4e352a0
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbauthServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-08b2f7aadd4e352a0
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbauthServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-08b2f7aadd4e352a0
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbauthserviceService:
+    DependsOn:
+      - MongodbauthserviceTCP27017Listener
+      - MongodbauthServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbauthServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbauthServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_auth_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbauthserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbauthserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_auth_service
+      TaskDefinition:
+        Ref: MongodbauthserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbauthserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_auth_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_auth_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbauthserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbauthserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbauthserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbauthserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbauthservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbauthservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: authService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: authService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-authService-data
+          Name: mongodb_auth_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbauthserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_auth_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbauthserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbauthServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-08b2f7aadd4e352a0
+            TransitEncryption: ENABLED
+          Name: mongodb-authService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbauthserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_auth_service
+    Type: AWS::IAM::Role
+  MongodbauthserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbauthServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-08b2f7aadd4e352a0
+            Version: 2012-10-17
+          PolicyName: MongodbauthserviceMongodbauthServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_auth_service
+    Type: AWS::IAM::Role
+  MongodbcommentServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-commentService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-commentService-data
+      FileSystemId: fs-04a0330456af58dd3
+    Type: AWS::EFS::AccessPoint
+  MongodbcommentServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-04a0330456af58dd3
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbcommentServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-04a0330456af58dd3
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbcommentServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-04a0330456af58dd3
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbcommentserviceService:
+    DependsOn:
+      - MongodbcommentserviceTCP27017Listener
+      - MongodbcommentServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbcommentServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbcommentServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_comment_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbcommentserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbcommentserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_comment_service
+      TaskDefinition:
+        Ref: MongodbcommentserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbcommentserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_comment_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_comment_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbcommentserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbcommentserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbcommentserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbcommentserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbcommentservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbcommentservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: commentService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: commentService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-commentService-data
+          Name: mongodb_comment_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbcommentserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_comment_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbcommentserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbcommentServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-04a0330456af58dd3
+            TransitEncryption: ENABLED
+          Name: mongodb-commentService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbcommentserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_comment_service
+    Type: AWS::IAM::Role
+  MongodbcommentserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbcommentServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-04a0330456af58dd3
+            Version: 2012-10-17
+          PolicyName: MongodbcommentserviceMongodbcommentServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_comment_service
+    Type: AWS::IAM::Role
+  MongodbdecisionServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-decisionService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-decisionService-data
+      FileSystemId: fs-0aab8a23f90e5b5e2
+    Type: AWS::EFS::AccessPoint
+  MongodbdecisionServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-0aab8a23f90e5b5e2
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbdecisionServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-0aab8a23f90e5b5e2
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbdecisionServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-0aab8a23f90e5b5e2
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbdecisionserviceService:
+    DependsOn:
+      - MongodbdecisionserviceTCP27017Listener
+      - MongodbdecisionServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbdecisionServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbdecisionServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_decision_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbdecisionserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbdecisionserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_decision_service
+      TaskDefinition:
+        Ref: MongodbdecisionserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbdecisionserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_decision_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_decision_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbdecisionserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbdecisionserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbdecisionserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbdecisionserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbdecisionservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbdecisionservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: decisionService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: decisionService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-decisionService-data
+          Name: mongodb_decision_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbdecisionserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_decision_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbdecisionserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbdecisionServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-0aab8a23f90e5b5e2
+            TransitEncryption: ENABLED
+          Name: mongodb-decisionService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbdecisionserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_decision_service
+    Type: AWS::IAM::Role
+  MongodbdecisionserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbdecisionServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-0aab8a23f90e5b5e2
+            Version: 2012-10-17
+          PolicyName: MongodbdecisionserviceMongodbdecisionServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_decision_service
+    Type: AWS::IAM::Role
+  MongodbpostServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-postService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-postService-data
+      FileSystemId: fs-02b5dd2553be780db
+    Type: AWS::EFS::AccessPoint
+  MongodbpostServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-02b5dd2553be780db
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbpostServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-02b5dd2553be780db
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbpostServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-02b5dd2553be780db
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbpostserviceService:
+    DependsOn:
+      - MongodbpostserviceTCP27017Listener
+      - MongodbpostServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbpostServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbpostServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_post_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbpostserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbpostserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_post_service
+      TaskDefinition:
+        Ref: MongodbpostserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbpostserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_post_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_post_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbpostserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbpostserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbpostserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbpostserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbpostservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbpostservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: postService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: postService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-postService-data
+          Name: mongodb_post_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbpostserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_post_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbpostserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbpostServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-02b5dd2553be780db
+            TransitEncryption: ENABLED
+          Name: mongodb-postService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbpostserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_post_service
+    Type: AWS::IAM::Role
+  MongodbpostserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbpostServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-02b5dd2553be780db
+            Version: 2012-10-17
+          PolicyName: MongodbpostserviceMongodbpostServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_post_service
+    Type: AWS::IAM::Role
+  MongodbreportServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-reportService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-reportService-data
+      FileSystemId: fs-0b94c87d2bd03caa1
+    Type: AWS::EFS::AccessPoint
+  MongodbreportServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-0b94c87d2bd03caa1
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbreportServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-0b94c87d2bd03caa1
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbreportServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-0b94c87d2bd03caa1
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbreportserviceService:
+    DependsOn:
+      - MongodbreportserviceTCP27017Listener
+      - MongodbreportServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbreportServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbreportServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_report_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbreportserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbreportserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_report_service
+      TaskDefinition:
+        Ref: MongodbreportserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbreportserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_report_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_report_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbreportserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbreportserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbreportserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbreportserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbreportservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbreportservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: reportService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: reportService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-reportService-data
+          Name: mongodb_report_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbreportserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_report_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbreportserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbreportServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-0b94c87d2bd03caa1
+            TransitEncryption: ENABLED
+          Name: mongodb-reportService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbreportserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_report_service
+    Type: AWS::IAM::Role
+  MongodbreportserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbreportServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-0b94c87d2bd03caa1
+            Version: 2012-10-17
+          PolicyName: MongodbreportserviceMongodbreportServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_report_service
+    Type: AWS::IAM::Role
+  MongodbrewardServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-rewardService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-rewardService-data
+      FileSystemId: fs-09f4bdf2a579a6caf
+    Type: AWS::EFS::AccessPoint
+  MongodbrewardServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-09f4bdf2a579a6caf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbrewardServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-09f4bdf2a579a6caf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbrewardServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-09f4bdf2a579a6caf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbrewardserviceService:
+    DependsOn:
+      - MongodbrewardserviceTCP27017Listener
+      - MongodbrewardServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbrewardServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbrewardServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_reward_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbrewardserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbrewardserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_reward_service
+      TaskDefinition:
+        Ref: MongodbrewardserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbrewardserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_reward_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_reward_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbrewardserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbrewardserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbrewardserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbrewardserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbrewardservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbrewardservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: rewardService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: rewardService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-rewardService-data
+          Name: mongodb_reward_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbrewardserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_reward_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbrewardserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbrewardServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-09f4bdf2a579a6caf
+            TransitEncryption: ENABLED
+          Name: mongodb-rewardService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbrewardserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_reward_service
+    Type: AWS::IAM::Role
+  MongodbrewardserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbrewardServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-09f4bdf2a579a6caf
+            Version: 2012-10-17
+          PolicyName: MongodbrewardserviceMongodbrewardServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_reward_service
+    Type: AWS::IAM::Role
+  MongodbsearchServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-searchService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-searchService-data
+      FileSystemId: fs-08495a5f097dd4daf
+    Type: AWS::EFS::AccessPoint
+  MongodbsearchServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-08495a5f097dd4daf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbsearchServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-08495a5f097dd4daf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbsearchServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-08495a5f097dd4daf
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbsearchserviceService:
+    DependsOn:
+      - MongodbsearchserviceTCP27017Listener
+      - MongodbsearchServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbsearchServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbsearchServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_search_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbsearchserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbsearchserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_search_service
+      TaskDefinition:
+        Ref: MongodbsearchserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbsearchserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_search_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_search_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbsearchserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbsearchserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbsearchserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbsearchserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbsearchservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbsearchservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: searchService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: searchService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-searchService-data
+          Name: mongodb_search_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbsearchserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_search_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbsearchserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbsearchServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-08495a5f097dd4daf
+            TransitEncryption: ENABLED
+          Name: mongodb-searchService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbsearchserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_search_service
+    Type: AWS::IAM::Role
+  MongodbsearchserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbsearchServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-08495a5f097dd4daf
+            Version: 2012-10-17
+          PolicyName: MongodbsearchserviceMongodbsearchServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_search_service
+    Type: AWS::IAM::Role
+  MongodbvoteServicedataAccessPoint:
+    Properties:
+      AccessPointTags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.volume
+          Value: mongodb-voteService-data
+        - Key: Name
+          Value: rewarding-sale-app_mongodb-voteService-data
+      FileSystemId: fs-09640897fe0856f0b
+    Type: AWS::EFS::AccessPoint
+  MongodbvoteServicedataNFSMountTargetOnSubnet031cd94a528d7bd43:
+    Properties:
+      FileSystemId: fs-09640897fe0856f0b
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-031cd94a528d7bd43
+    Type: AWS::EFS::MountTarget
+  MongodbvoteServicedataNFSMountTargetOnSubnet02769e9eaa84da5df:
+    Properties:
+      FileSystemId: fs-09640897fe0856f0b
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-02769e9eaa84da5df
+    Type: AWS::EFS::MountTarget
+  MongodbvoteServicedataNFSMountTargetOnSubnet0b81881aff75c57ab:
+    Properties:
+      FileSystemId: fs-09640897fe0856f0b
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      SubnetId: subnet-0b81881aff75c57ab
+    Type: AWS::EFS::MountTarget
+  MongodbvoteserviceService:
+    DependsOn:
+      - MongodbvoteserviceTCP27017Listener
+      - MongodbvoteServicedataNFSMountTargetOnSubnet031cd94a528d7bd43
+      - MongodbvoteServicedataNFSMountTargetOnSubnet0b81881aff75c57ab
+      - MongodbvoteServicedataNFSMountTargetOnSubnet02769e9eaa84da5df
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: mongodb_vote_service
+          ContainerPort: 27017
+          TargetGroupArn:
+            Ref: MongodbvoteserviceTCP27017TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - MongodbvoteserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_vote_service
+      TaskDefinition:
+        Ref: MongodbvoteserviceTaskDefinition
+    Type: AWS::ECS::Service
+  MongodbvoteserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"mongodb_vote_service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: mongodb_vote_service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  MongodbvoteserviceTCP27017Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: MongodbvoteserviceTCP27017TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 27017
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  MongodbvoteserviceTCP27017TargetGroup:
+    Properties:
+      Port: 27017
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  MongodbvoteserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Mongodbvoteservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Mongodbvoteservice_ResolvConf_InitContainer
+          Environment:
+            - Name: MONGO_INITDB_ROOT_PASSWORD
+              Value: voteService
+            - Name: MONGO_INITDB_ROOT_USERNAME
+              Value: voteService
+          Essential: true
+          Image: docker.io/library/mongo:latest@sha256:a70130d7c7ad8dea76a48ac27ddebede0bb24122dd38ad83c229afea03f0f279
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          MountPoints:
+            - ContainerPath: /data/db
+              SourceVolume: mongodb-voteService-data
+          Name: mongodb_vote_service
+          PortMappings:
+            - ContainerPort: 27017
+              HostPort: 27017
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: MongodbvoteserviceTaskExecutionRole
+      Family: rewarding-sale-app-mongodb_vote_service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Ref: MongodbvoteserviceTaskRole
+      Volumes:
+        - EFSVolumeConfiguration:
+            AuthorizationConfig:
+              AccessPointId:
+                Ref: MongodbvoteServicedataAccessPoint
+              IAM: ENABLED
+            FilesystemId: fs-09640897fe0856f0b
+            TransitEncryption: ENABLED
+          Name: mongodb-voteService-data
+    Type: AWS::ECS::TaskDefinition
+  MongodbvoteserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_vote_service
+    Type: AWS::IAM::Role
+  MongodbvoteserviceTaskRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Condition:
+                  StringEquals:
+                    elasticfilesystem:AccessPointArn:
+                      Ref: MongodbvoteServicedataAccessPoint
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:elasticfilesystem:ca-central-1:730335472150:file-system/fs-09640897fe0856f0b
+            Version: 2012-10-17
+          PolicyName: MongodbvoteserviceMongodbvoteServicedataVolumeMountPolicy
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: mongodb_vote_service
+    Type: AWS::IAM::Role
+  NginxService:
+    DependsOn:
+      - NginxTCP80Listener
+      - AdminserviceService
+      - AuthserviceService
+      - ReportserviceService
+      - RewardserviceService
+      - VoteserviceService
+      - DecisionserviceService
+      - PostserviceService
+      - SearchserviceService
+      - CommentserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: nginx
+          ContainerPort: 80
+          TargetGroupArn:
+            Ref: NginxTCP80TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - NginxServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: nginx
+      TaskDefinition:
+        Ref: NginxTaskDefinition
+    Type: AWS::ECS::Service
+  NginxServiceDiscoveryEntry:
+    Properties:
+      Description: '"nginx" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: nginx
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  NginxTCP80Listener:
+    Properties:
+      DefaultActions:
+        - ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn:
+                  Ref: NginxTCP80TargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 80
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  NginxTCP80TargetGroup:
+    Properties:
+      Port: 80
+      Protocol: TCP
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+      TargetType: ip
+      VpcId: vpc-0eac5707d03b4e7e0
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  NginxTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Nginx_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Nginx_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_nginx_reverse_proxy:latest@sha256:5779c070a480e1f6882b7dac1055212b492c466a29b4b908517e54a4518511f0
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: nginx
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 80
+              Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: NginxTaskExecutionRole
+      Family: rewarding-sale-app-nginx
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  NginxTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: nginx
+    Type: AWS::IAM::Role
+  PostserviceService:
+    DependsOn:
+      - MongodbpostserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - PostserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: post-service
+      TaskDefinition:
+        Ref: PostserviceTaskDefinition
+    Type: AWS::ECS::Service
+  PostserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"post-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: post-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  PostserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Postservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Postservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_post_service:latest@sha256:cf791d0ddbd2ed3bd024a209c4f23c9accfe7b870c46a233595f05ddc1e99f76
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: post-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: PostserviceTaskExecutionRole
+      Family: rewarding-sale-app-post-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  PostserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: post-service
+    Type: AWS::IAM::Role
+  ReportserviceService:
+    DependsOn:
+      - MongodbreportserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - ReportserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: report-service
+      TaskDefinition:
+        Ref: ReportserviceTaskDefinition
+    Type: AWS::ECS::Service
+  ReportserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"report-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: report-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  ReportserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Reportservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Reportservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_report_service:latest@sha256:0a6947dae8d9fdd278edc7fa98e3774174a8d9cd1fa26b3ccc15a195d331c688
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: report-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: ReportserviceTaskExecutionRole
+      Family: rewarding-sale-app-report-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  ReportserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: report-service
+    Type: AWS::IAM::Role
+  RewardserviceService:
+    DependsOn:
+      - MongodbrewardserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - RewardserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: reward-service
+      TaskDefinition:
+        Ref: RewardserviceTaskDefinition
+    Type: AWS::ECS::Service
+  RewardserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"reward-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: reward-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  RewardserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Rewardservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Rewardservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_rewards_service:latest@sha256:09f25bd79405f5dca2247ffb7240cbe4ee9ba1b07ed1b9760fb71935482c6a6f
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: reward-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: RewardserviceTaskExecutionRole
+      Family: rewarding-sale-app-reward-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  RewardserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: reward-service
+    Type: AWS::IAM::Role
+  SearchserviceService:
+    DependsOn:
+      - MongodbsearchserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - SearchserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: search-service
+      TaskDefinition:
+        Ref: SearchserviceTaskDefinition
+    Type: AWS::ECS::Service
+  SearchserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"search-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: search-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  SearchserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Searchservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Searchservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_search_service:latest@sha256:6c634969dd9c1cd5fdae4315f903774d022a828cc8e1d7d4c3d6d24ce88514cb
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: search-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: SearchserviceTaskExecutionRole
+      Family: rewarding-sale-app-search-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  SearchserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: search-service
+    Type: AWS::IAM::Role
+  VoteserviceService:
+    DependsOn:
+      - MongodbvoteserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+          - Cluster
+          - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Ref: DefaultNetwork
+          Subnets:
+            - subnet-031cd94a528d7bd43
+            - subnet-0b81881aff75c57ab
+            - subnet-02769e9eaa84da5df
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+        - RegistryArn:
+            Fn::GetAtt:
+              - VoteserviceServiceDiscoveryEntry
+              - Arn
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: vote-service
+      TaskDefinition:
+        Ref: VoteserviceTaskDefinition
+    Type: AWS::ECS::Service
+  VoteserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"vote-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: vote-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  VoteserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - ca-central-1.compute.internal
+            - rewarding-sale-app.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: Voteservice_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Voteservice_ResolvConf_InitContainer
+          Essential: true
+          Image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_vote_service:latest@sha256:3e0396e074efeae585e570118baf076b3ba3978337825bca1e906a5a6f72dbad
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: rewarding-sale-app
+          Name: vote-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: VoteserviceTaskExecutionRole
+      Family: rewarding-sale-app-vote-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  VoteserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: {}
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: com.docker.compose.project
+          Value: rewarding-sale-app
+        - Key: com.docker.compose.service
+          Value: vote-service
+    Type: AWS::IAM::Role

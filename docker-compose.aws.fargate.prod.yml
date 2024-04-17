@@ -16,9 +16,7 @@ services:
 
   auth-service:
     container_name: auth-service
-    build:
-      context: ./rewarding-sale-app-auth-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_auth_service:latest
     depends_on:
       - mongodb_auth_service
     deploy:
@@ -41,9 +39,7 @@ services:
 
   post-service:
     container_name: post-service
-    build:
-      context: ./rewarding-sale-app-post-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_post_service:latest
     depends_on:
       - mongodb_post_service
     deploy:
@@ -67,9 +63,7 @@ services:
 
   admin-service:
     container_name: admin-service
-    build:
-      context: ./rewarding-sale-app-admin-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_admin_service:latest
     depends_on:
       - mongodb_admin_service
     deploy:
@@ -93,9 +87,7 @@ services:
 
   search-service:
     container_name: search-service
-    build:
-      context: ./rewarding-sale-app-search-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_search_service:latest
     depends_on:
       - mongodb_search_service
     deploy:
@@ -118,9 +110,7 @@ services:
 
   comment-service:
     container_name: comment-service
-    build:
-      context: ./rewarding-sale-app-comment-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_comment_service:latest
     depends_on:
       - mongodb_comment_service
     deploy:
@@ -144,9 +134,7 @@ services:
 
   vote-service:
     container_name: vote-service
-    build:
-      context: ./rewarding-sale-app-vote-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_vote_service:latest
     depends_on:
       - mongodb_vote_service
     deploy:
@@ -169,9 +157,7 @@ services:
 
   reward-service:
     container_name: reward-service
-    build:
-      context: ./rewarding-sale-app-rewards-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_rewards_service:latest
     depends_on:
       - mongodb_reward_service
     deploy:
@@ -194,9 +180,7 @@ services:
 
   report-service:
     container_name: report-service
-    build:
-      context: ./rewarding-sale-app-report-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_report_service:latest
     depends_on:
       - mongodb_report_service
     deploy:
@@ -219,9 +203,7 @@ services:
 
   decision-service:
     container_name: decision-service
-    build:
-      context: ./rewarding-sale-app-decision-service
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_decision_service:latest
     depends_on:
       - mongodb_decision_service
     deploy:
@@ -232,9 +214,7 @@ services:
   ### Reverse Proxy - Nginx
   nginx:
     container_name: nginx
-    build:
-      context: ./rewarding-sale-app-nginx-reverse-proxy
-      dockerfile: Dockerfile-prod
+    image: 730335472150.dkr.ecr.ca-central-1.amazonaws.com/sale_spotter_nginx_reverse_proxy:latest
     ports:
       - "80:80"
     depends_on:
