@@ -284,6 +284,41 @@ services:
     ports:
       - "3007:3000"
 
+##Decision Service
+  mongodb_decision_service:
+    container_name: mongodb_decision_service
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=decisionService
+      - MONGO_INITDB_ROOT_PASSWORD=decisionService
+    ports:
+      - "27017"
+    volumes:
+      - mongodb-decisionService-data:/data/db
+
+  mongo-express-decision:
+    container_name: mongo-express-decision
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://decisionService:decisionService@mongodb_decision_service:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  #mongo-express web username
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  #mongo-express web password
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=decisionService
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=decisionService
+    depends_on:
+      - mongodb_decision_service
+    ports:
+      - "8089:8081"
+
+  decision-service:
+    container_name: decision-service
+    build: ./rewarding-sale-app-decision-service
+    depends_on:
+      - mongodb_decision_service
+    ports:
+      - "3008:3000"
+
 volumes:
   mongodb-authService-data:
     driver: local
@@ -307,4 +342,7 @@ volumes:
     driver: local
 
   mongodb-reportService-data:
+    driver: local
+
+  mongodb-decisionService-data:
     driver: local
